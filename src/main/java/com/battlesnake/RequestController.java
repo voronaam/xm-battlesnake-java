@@ -12,6 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * 
+ * 
+ * http://10.199.71.103:8080        https://still-beyond-18845.herokuapp.com       https://minaj-snake-2017.herokuapp.com/
+ * 
+ * 
  */
 
 package com.battlesnake;
@@ -28,10 +34,10 @@ public class RequestController {
     @RequestMapping(value="/start", method=RequestMethod.POST, produces="application/json")
     public StartResponse start(@RequestBody StartRequest request) {
         return new StartResponse()
-                .setName("Coachwhip")
+                .setName("Coachwhip-G")
                 .setColor("#FF3497")
                 .setHeadUrl("http://vignette1.wikia.nocookie.net/nintendo/images/6/61/Bowser_Icon.png/revision/latest?cb=20120820000805&path-prefix=en")
-                .setHeadType(HeadType.DEAD)
+                .setHeadType(HeadType.SHADES)
                 .setTailType(TailType.PIXEL)
                 .setTaunt("Hello world!");
     }
@@ -42,7 +48,8 @@ public class RequestController {
         
         Snake mySnake = findOurSnake(request); // kind of handy to have our snake at this level
         List<Move> towardsFoodMoves = moveTowardsFood(request, mySnake.getCoords());
-        List<Move> keepGoingMoves = keepGoing(request, mySnake.getCoords());
+        // List<Move> keepGoingMoves = keepGoing(request, mySnake.getCoords());
+        List<Move> keepGoingMoves = guardFood(request, mySnake);
         
         // evade
         towardsFoodMoves = evade(request, mySnake, towardsFoodMoves);
@@ -50,7 +57,7 @@ public class RequestController {
         List<Move> anythingMoves = evade(request, mySnake, ALL_MOVES);
         
         Move selectedMove = null;
-        if (towardsFoodMoves != null && !towardsFoodMoves.isEmpty() && mySnake.getHealth() < 75) {
+        if (towardsFoodMoves != null && !towardsFoodMoves.isEmpty() && mySnake.getHealth() < 60) {
             selectedMove = towardsFoodMoves.get(0);
         } else if (!keepGoingMoves.isEmpty()){
             selectedMove = keepGoingMoves.get(0);
@@ -97,7 +104,7 @@ public class RequestController {
     
     private boolean hasPathToEdge(int[][] field, Point target) {
         boolean hasLeft = true;
-        for (int x = target.x; x > 0; x--) {
+        for (int x = target.x; x >= 0; x--) {
             if (field[x][target.y] != 0) {
                 hasLeft = false;
                 break;
@@ -111,7 +118,7 @@ public class RequestController {
             }
         }
         boolean hasUp = true;
-        for (int y = target.y; y > 0; y--) {
+        for (int y = target.y; y >= 0; y--) {
             if (field[target.x][y] != 0) {
                 hasUp = false;
                 break;
@@ -259,5 +266,44 @@ public class RequestController {
             }
         }
         return false;
+    }
+    
+    private List<Move> guardFood(MoveRequest request, Snake mySnake) {
+        List<Point> coords = mySnake.getCoords();
+        if (coords.size() < 6 || mySnake.getHealth() < 75) {
+            return keepGoing(request, coords);
+        }
+        double distance = ((double)coords.size() - 2) / 8;
+        ArrayList<Move> moves = new ArrayList<>();
+        Point head = coords.get(0);
+        Point neck = coords.get(1);
+        int[] firstFoodLocation = request.getFood()[request.getFood().length - 1];
+        if (firstFoodLocation[0] < distance || firstFoodLocation[1] < distance || 
+                firstFoodLocation[0] > request.getWidth() - 1  - distance ||
+                firstFoodLocation[1] > request.getHeight() - 1 - distance) {
+            return keepGoing(request, coords);
+        }
+        double distanceLeft = penalizeLow(distance, head.leftOf().distanceTo(firstFoodLocation)) + (neck.theSame(head.leftOf()) ? 100 : 0);
+        double distanceRight = penalizeLow(distance, head.rightOf().distanceTo(firstFoodLocation)) + (neck.theSame(head.rightOf()) ? 100 : 0);;
+        double distanceUp = penalizeLow(distance, head.upOf().distanceTo(firstFoodLocation)) + (neck.theSame(head.upOf()) ? 100 : 0);;
+        double distanceDown = penalizeLow(distance, head.downOf().distanceTo(firstFoodLocation)) + (neck.theSame(head.downOf()) ? 100 : 0);;
+        
+        if (distanceLeft <= distanceRight && distanceLeft <= distanceUp && distanceLeft <= distanceDown) {
+            moves.add(Move.LEFT);
+        }
+        if (distanceRight <= distanceLeft && distanceRight <= distanceUp && distanceRight <= distanceDown) {
+            moves.add(Move.RIGHT);
+        }
+        if (distanceUp <= distanceLeft && distanceUp <= distanceRight && distanceUp <= distanceDown) {
+            moves.add(Move.UP);
+        }
+        if (distanceDown <= distanceLeft && distanceDown <= distanceRight && distanceDown <= distanceUp) {
+            moves.add(Move.DOWN);
+        }
+        return moves;
+    }
+
+    private double penalizeLow(double distance, double computed) {
+        return computed > distance ? computed : 100;
     }
 }
