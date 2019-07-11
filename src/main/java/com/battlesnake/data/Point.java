@@ -42,5 +42,8 @@ public class Point {
         }
         return this;
     }
+    public boolean isValid(int width, int height) {
+        return x >= 0 && y >= 0 && x <= width - 1 && y <= height - 1;
+    }
 
 }

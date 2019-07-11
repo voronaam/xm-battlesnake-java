@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class RequestController {
+    
+    private static List<Move> ALL_MOVES = Arrays.asList(Move.values());
 
     @RequestMapping(value="/start", method=RequestMethod.POST, produces="application/json")
     public StartResponse start(@RequestBody StartRequest request) {
@@ -42,36 +44,47 @@ public class RequestController {
         List<Move> towardsFoodMoves = moveTowardsFood(request, mySnake.getCoords());
         List<Move> keepGoingMoves = keepGoing(request, mySnake.getCoords());
         
-        Move selectedMove = null;
+        // evade
+        towardsFoodMoves = evade(request, mySnake, towardsFoodMoves);
+        keepGoingMoves = evade(request, mySnake, keepGoingMoves);
+        List<Move> anythingMoves = evade(request, mySnake, ALL_MOVES);
         
+        Move selectedMove = null;
         if (towardsFoodMoves != null && !towardsFoodMoves.isEmpty() && mySnake.getHealth() < 75) {
             selectedMove = towardsFoodMoves.get(0);
-        } else {
+        } else if (!keepGoingMoves.isEmpty()){
             selectedMove = keepGoingMoves.get(0);
+        } else {
+            selectedMove = anythingMoves.get(0);
         }
-        // evade
-        selectedMove = evade(request, mySnake, selectedMove);
-        
         return moveResponse.setMove(selectedMove);
     }
 
-    private Move evade(MoveRequest request, Snake mySnake, Move selectedMove) {
+    private List<Move> evade(MoveRequest request, Snake mySnake, List<Move> options) {
         Point head = mySnake.getCoords().get(0);
-        for (int i = 0; i < 4; i++) {
-            Point target = head.move(selectedMove);
-            boolean hit = false;
-            for (Snake s: request.getSnakes()) {
-                if(someBody(s.getCoords(), target)) {
-                    hit = true;
-                    selectedMove = clockwise(selectedMove);
-                    break;
-                }
+        int[][] field = new int[request.getWidth()][request.getHeight()];
+        // Makr the field
+        for (Snake s: request.getSnakes()) {
+            for (Point p: s.getCoords()) {
+                field[p.x][p.y] = 1;
             }
-            if (!hit) {
-                break;
+            if (!s.getId().equals(mySnake.getId())) {
+                Point h = s.getCoords().get(0);
+                field[h.leftOf().x][h.leftOf().y] = 2;
+                field[h.rightOf().x][h.rightOf().y] = 2;
+                field[h.upOf().x][h.upOf().y] = 2;
+                field[h.downOf().x][h.downOf().y] = 2;
             }
         }
-        return selectedMove;
+        // Vet the options
+        List<Move> vetted = new ArrayList<Move>(options.size());
+        for (Move m: options) {
+            Point target = head.move(m);
+            if (target.isValid(request.getWidth(), request.getHeight()) && field[target.x][target.y] == 0) {
+                vetted.add(m);
+            }
+        }
+        return vetted;
     }
 
     private Move clockwise(Move selectedMove) {
