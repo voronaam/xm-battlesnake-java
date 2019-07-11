@@ -75,24 +75,34 @@ public class RequestController {
             for (Point p: s.getCoords()) {
                 field[p.x][p.y] = 1;
             }
-            if (!s.getId().equals(mySnake.getId())) {
+            // ATTACK or not
+            int attack = 2;
+            if (s.getCoords().size() < mySnake.getCoords().size()) {
+                attack = 20;
+            }
+            if (s.getId() != mySnake.getId()) {
                 Point h = s.getCoords().get(0);
                 if (h.leftOf().isValid(request.getWidth(), request.getHeight()))
-                    field[h.leftOf().x][h.leftOf().y] = 2;
+                    field[h.leftOf().x][h.leftOf().y] = attack;
                 if (h.rightOf().isValid(request.getWidth(), request.getHeight()))
-                    field[h.rightOf().x][h.rightOf().y] = 2;
+                    field[h.rightOf().x][h.rightOf().y] = attack;
                 if (h.upOf().isValid(request.getWidth(), request.getHeight()))
-                    field[h.upOf().x][h.upOf().y] = 2;
+                    field[h.upOf().x][h.upOf().y] = attack;
                 if (h.downOf().isValid(request.getWidth(), request.getHeight()))
-                    field[h.downOf().x][h.downOf().y] = 2;
+                    field[h.downOf().x][h.downOf().y] = attack;                
             }
         }
         // Vet the options
         List<Move> vetted = new ArrayList<Move>(options.size());
         for (Move m: options) {
             Point target = head.move(m);
-            if (target.isValid(request.getWidth(), request.getHeight()) && field[target.x][target.y] == 0 && hasPathToEdge(deepCopy(field), target)) {
-                vetted.add(m);
+            if (target.isValid(request.getWidth(), request.getHeight())) {
+                if (field[target.x][target.y] == 0 && hasPathToEdge(deepCopy(field), target)) {
+                    vetted.add(m);
+                }
+                if (field[target.x][target.y] == 20) {
+                    return Arrays.asList(m);
+                }
             }
         }
         return vetted;
