@@ -56,12 +56,12 @@ public class RequestController {
     }
 
     private Move evade(MoveRequest request, Snake mySnake, Move selectedMove) {
-        Point head = new Point(mySnake.getCoords()[0]);
+        Point head = mySnake.getCoords().get(0);
         for (int i = 0; i < 4; i++) {
             Point target = head.move(selectedMove);
             boolean hit = false;
             for (Snake s: request.getSnakes()) {
-                if(!notBody(s.getCoords(), target.get())) {
+                if(!notBody(s.getCoords(), target)) {
                     hit = true;
                     selectedMove = clockwise(selectedMove);
                     break;
@@ -88,13 +88,13 @@ public class RequestController {
         }
     }
 
-    private List<Move> keepGoing(MoveRequest request, int[][] coords) {
+    private List<Move> keepGoing(MoveRequest request, List<Point> coords) {
         ArrayList<Move> moves = new ArrayList<>();
-        if (coords.length < 2) {
+        if (coords.size() < 2) {
             moves.add(Move.LEFT);
         }
-        Point head = new Point(coords[0]);
-        Point neck = new Point(coords[1]);
+        Point head = coords.get(0);
+        Point neck = coords.get(1);
         if (head.x == neck.x) {
             if (head.y < neck.y) {
                 // up
@@ -174,8 +174,8 @@ public class RequestController {
      *  @param  request An integer array with the X,Y coordinates of your snake's head
      *  @return         A Move that gets you closer to food
      */    
-    public ArrayList<Move> moveTowardsFood(MoveRequest request, int[][] mySnake) {
-        Point mySnakeHead = new Point(mySnake[0]);
+    public ArrayList<Move> moveTowardsFood(MoveRequest request, List<Point> mySnake) {
+        Point mySnakeHead = mySnake.get(0);
         ArrayList<Move> towardsFoodMoves = new ArrayList<>();
 
         int[] firstFoodLocation = request.getFood()[request.getFood().length - 1];
@@ -199,9 +199,9 @@ public class RequestController {
         return towardsFoodMoves;
     }
     
-    private boolean notBody(int[][] mySnake, int[] target) {
-        for (int i = 1; i < mySnake.length; i++) {
-            if (new Point(mySnake[i]).theSame(target)) {
+    private boolean notBody(List<Point> mySnake, Point target) {
+        for (int i = 1; i < mySnake.size(); i++) {
+            if (mySnake.get(i).theSame(target)) {
                 return false;
             }
         }

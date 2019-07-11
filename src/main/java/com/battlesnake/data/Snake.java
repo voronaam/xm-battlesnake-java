@@ -16,6 +16,9 @@
 
 package com.battlesnake.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Snake {
@@ -46,10 +49,13 @@ public class Snake {
     return this.health;
   }
 
-  public int[][] getCoords() {
-    return this.coords;
+  public List<Point> getCoords() {
+	List<Point> points = new ArrayList<>();
+	for (int[] coord : coords) {
+		points.add(new Point(coord[0], coord[1]));
+	}
+    return points;
   }
-
 
   public void setId(String id) {
     this.id = id;
@@ -70,5 +76,4 @@ public class Snake {
   public void setCoords(int[][] coords) {
     this.coords = coords;
   }
-
 }
