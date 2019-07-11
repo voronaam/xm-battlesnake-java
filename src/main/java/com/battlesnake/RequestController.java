@@ -50,7 +50,7 @@ public class RequestController {
             selectedMove = keepGoingMoves.get(0);
         }
         // evade
-        // selectedMove = evade(request, mySnake, selectedMove);
+        selectedMove = evade(request, mySnake, selectedMove);
         
         return moveResponse.setMove(selectedMove);
     }
@@ -180,19 +180,19 @@ public class RequestController {
 
         int[] firstFoodLocation = request.getFood()[request.getFood().length - 1];
 
-        if (firstFoodLocation[0] < mySnakeHead.x && !someBody(mySnake, mySnakeHead.leftOf())) {
+        if (firstFoodLocation[0] < mySnakeHead.x) {
             towardsFoodMoves.add(Move.LEFT);
         }
 
-        if (firstFoodLocation[0] > mySnakeHead.x && !someBody(mySnake, mySnakeHead.rightOf())) {
+        if (firstFoodLocation[0] > mySnakeHead.x) {
             towardsFoodMoves.add(Move.RIGHT);
         }
 
-        if (firstFoodLocation[1] < mySnakeHead.y && !someBody(mySnake, mySnakeHead.upOf())) {
+        if (firstFoodLocation[1] < mySnakeHead.y) {
             towardsFoodMoves.add(Move.UP);
         }
 
-        if (firstFoodLocation[1] > mySnakeHead.y && !someBody(mySnake, mySnakeHead.downOf())) {
+        if (firstFoodLocation[1] > mySnakeHead.y) {
             towardsFoodMoves.add(Move.DOWN);
         }
 
