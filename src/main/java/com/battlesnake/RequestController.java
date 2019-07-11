@@ -70,21 +70,61 @@ public class RequestController {
             }
             if (!s.getId().equals(mySnake.getId())) {
                 Point h = s.getCoords().get(0);
-                field[h.leftOf().x][h.leftOf().y] = 2;
-                field[h.rightOf().x][h.rightOf().y] = 2;
-                field[h.upOf().x][h.upOf().y] = 2;
-                field[h.downOf().x][h.downOf().y] = 2;
+                if (h.leftOf().isValid(request.getWidth(), request.getHeight()))
+                    field[h.leftOf().x][h.leftOf().y] = 2;
+                if (h.rightOf().isValid(request.getWidth(), request.getHeight()))
+                    field[h.rightOf().x][h.rightOf().y] = 2;
+                if (h.upOf().isValid(request.getWidth(), request.getHeight()))
+                    field[h.upOf().x][h.upOf().y] = 2;
+                if (h.downOf().isValid(request.getWidth(), request.getHeight()))
+                    field[h.downOf().x][h.downOf().y] = 2;
             }
         }
         // Vet the options
         List<Move> vetted = new ArrayList<Move>(options.size());
         for (Move m: options) {
             Point target = head.move(m);
-            if (target.isValid(request.getWidth(), request.getHeight()) && field[target.x][target.y] == 0) {
+            if (target.isValid(request.getWidth(), request.getHeight()) && field[target.x][target.y] == 0 && hasPathToEdge(deepCopy(field), target)) {
                 vetted.add(m);
             }
         }
         return vetted;
+    }
+    
+    private int[][] deepCopy(int[][] matrix) {
+        return java.util.Arrays.stream(matrix).map(el -> el.clone()).toArray($ -> matrix.clone());
+    }
+    
+    private boolean hasPathToEdge(int[][] field, Point target) {
+        boolean hasLeft = true;
+        for (int x = target.x; x > 0; x--) {
+            if (field[x][target.y] != 0) {
+                hasLeft = false;
+                break;
+            }
+        }
+        boolean hasRight = true;
+        for (int x = target.x; x < field.length; x++) {
+            if (field[x][target.y] != 0) {
+                hasRight = false;
+                break;
+            }
+        }
+        boolean hasUp = true;
+        for (int y = target.y; y > 0; y--) {
+            if (field[target.x][y] != 0) {
+                hasUp = false;
+                break;
+            }
+        }
+        boolean hasDown = true;
+        for (int y = target.y; y < field[0].length; y++) {
+            if (field[target.x][y] != 0) {
+                hasDown = false;
+                break;
+            }
+        }
+        return hasLeft || hasRight || hasUp || hasDown;
     }
 
     private Move clockwise(Move selectedMove) {
