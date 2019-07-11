@@ -44,13 +44,13 @@ public class RequestController {
         
         Move selectedMove = null;
         
-        if (towardsFoodMoves != null && !towardsFoodMoves.isEmpty() && mySnake.getHealth() < 50) {
+        if (towardsFoodMoves != null && !towardsFoodMoves.isEmpty() && mySnake.getHealth() < 75) {
             selectedMove = towardsFoodMoves.get(0);
         } else {
             selectedMove = keepGoingMoves.get(0);
         }
         // evade
-        selectedMove = evade(request, mySnake, selectedMove);
+        // selectedMove = evade(request, mySnake, selectedMove);
         
         return moveResponse.setMove(selectedMove);
     }
@@ -61,7 +61,7 @@ public class RequestController {
             Point target = head.move(selectedMove);
             boolean hit = false;
             for (Snake s: request.getSnakes()) {
-                if(!notBody(s.getCoords(), target)) {
+                if(someBody(s.getCoords(), target)) {
                     hit = true;
                     selectedMove = clockwise(selectedMove);
                     break;
@@ -98,8 +98,8 @@ public class RequestController {
         if (head.x == neck.x) {
             if (head.y < neck.y) {
                 // up
-                if (head.y == 0) {
-                    if (head.x == 0) {
+                if (head.y <= 1) {
+                    if (head.x <= 1) {
                         moves.add(Move.RIGHT);
                     } else {
                         moves.add(Move.LEFT);
@@ -109,8 +109,8 @@ public class RequestController {
                 }
             } else {
                 // down
-                if (head.y == request.getHeight() - 1) {
-                    if (head.x == 0) {
+                if (head.y >= request.getHeight() - 2) {
+                    if (head.x <= 1) {
                         moves.add(Move.RIGHT);
                     } else {
                         moves.add(Move.LEFT);
@@ -122,8 +122,8 @@ public class RequestController {
         } else {
             if (head.x < neck.x) {
                 // left
-                if (head.x == 0) {
-                    if (head.y == 0) {
+                if (head.x <= 1) {
+                    if (head.y <= 1) {
                         moves.add(Move.DOWN);
                     } else {
                         moves.add(Move.UP);
@@ -133,8 +133,8 @@ public class RequestController {
                 }
             } else {
                 // right
-                if (head.x == request.getWidth() - 1) {
-                    if (head.y == 0) {
+                if (head.x >= request.getWidth() - 2) {
+                    if (head.y <= 1) {
                         moves.add(Move.DOWN);
                     } else {
                         moves.add(Move.UP);
@@ -180,31 +180,31 @@ public class RequestController {
 
         int[] firstFoodLocation = request.getFood()[request.getFood().length - 1];
 
-        if (firstFoodLocation[0] < mySnakeHead.x && notBody(mySnake, mySnakeHead.leftOf())) {
+        if (firstFoodLocation[0] < mySnakeHead.x && !someBody(mySnake, mySnakeHead.leftOf())) {
             towardsFoodMoves.add(Move.LEFT);
         }
 
-        if (firstFoodLocation[0] > mySnakeHead.x && notBody(mySnake, mySnakeHead.rightOf())) {
+        if (firstFoodLocation[0] > mySnakeHead.x && !someBody(mySnake, mySnakeHead.rightOf())) {
             towardsFoodMoves.add(Move.RIGHT);
         }
 
-        if (firstFoodLocation[1] < mySnakeHead.y && notBody(mySnake, mySnakeHead.upOf())) {
+        if (firstFoodLocation[1] < mySnakeHead.y && !someBody(mySnake, mySnakeHead.upOf())) {
             towardsFoodMoves.add(Move.UP);
         }
 
-        if (firstFoodLocation[1] > mySnakeHead.y && notBody(mySnake, mySnakeHead.downOf())) {
+        if (firstFoodLocation[1] > mySnakeHead.y && !someBody(mySnake, mySnakeHead.downOf())) {
             towardsFoodMoves.add(Move.DOWN);
         }
 
         return towardsFoodMoves;
     }
     
-    private boolean notBody(List<Point> mySnake, Point target) {
+    private boolean someBody(List<Point> mySnake, Point target) {
         for (int i = 1; i < mySnake.size(); i++) {
             if (mySnake.get(i).theSame(target)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }
