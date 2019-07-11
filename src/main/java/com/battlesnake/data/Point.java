@@ -13,21 +13,21 @@ public class Point {
         this.y = c[1];
     }
 
-    public boolean theSame(int[] target) {
-        return x == target[0] && y == target[1];
+    public boolean theSame(Point target) {
+        return x == target.x && y == target.y;
     }
 
-    public int[] leftOf() {
-        return new int[] {x-1, y};
+    public Point leftOf() {
+        return new Point(x-1, y);
     }
-    public int[] rightOf() {
-        return new int[] {x+1, y};
+    public Point rightOf() {
+        return new Point(x+1, y);
     }
-    public int[] upOf() {
-        return new int[] {x, y-1};
+    public Point upOf() {
+        return new Point(x, y-1);
     }
-    public int[] downOf() {
-        return new int[] {x, y+1};
+    public Point downOf() {
+        return new Point(x, y+1);
     }
     public Point move(Move selectedMove) {
         switch (selectedMove) {
@@ -41,9 +41,6 @@ public class Point {
             return new Point(x + 1, y);
         }
         return this;
-    }
-    public int[] get() {
-        return new int[] {x, y};
     }
 
 }
